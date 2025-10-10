@@ -29,43 +29,7 @@ Edit `config.js` and set `PRIMARY_DB_DOWN = true` to force the app to use the fa
 ## File Structure
 - `app.js` - Main server
 - `config.js` - DB config and failover flag
-- `public/` - Static files (HTML/CSS/JS)
+- `public/` - Static files (CSS)
 
 ---
 
-## Deployment (Render / Railway / Vercel)
-
-This app is ready to be deployed to free Node hosting providers. Below are quick, copy-paste friendly steps.
-
-Required environment variables (set these in your host's dashboard):
-- `PRIMARY_DB_URI` — MongoDB connection string (Atlas recommended)
-- `FALLBACK_DB_URI` — optional fallback MongoDB URI
-- `SESSION_SECRET` — strong secret for session cookies
-
-Render (simple):
-1. Push your repo to GitHub.
-2. Create a free account on https://render.com and connect your GitHub repo.
-3. Create a new Web Service, choose your repo and branch.
-4. Build command: `npm install` (optional). Start command: `npm start`.
-5. Add the environment variables in the service settings.
-6. Deploy and open the provided URL.
-
-Railway (simple):
-1. Create a Railway project and link to your GitHub repo.
-2. Railway will detect a Node.js app; set the start command to `npm start` if required.
-3. Add `PRIMARY_DB_URI` and `SESSION_SECRET` to project variables.
-4. Deploy and use the generated domain.
-
-Vercel (note):
-- Vercel is oriented to serverless functions. This app is a full Express server and is better hosted on Render or Railway unless you convert it to serverless.
-
-Local quick run
-```powershell
-npm install
-$env:PRIMARY_DB_URI='your-mongo-uri'
-$env:SESSION_SECRET='a-strong-secret'
-npm start
-```
-
-If you want, I can prepare the GitHub repo and perform the Render deployment steps for you — say which host you prefer and I'll continue with step-by-step actions (I can provide exact UI clicks or commands for Render/Railway). 
->>>>>>> 6ae48cd (Initial commit: notes app with auth, sessions, and audit logging)
