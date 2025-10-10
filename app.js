@@ -21,8 +21,18 @@ function getDbUri() {
 }
 
 // Connect to MongoDB with proper error handling
-mongoose.connect(getDbUri())
-  .then(() => console.log('Connected to MongoDB successfully'))
+mongoose.connect(getDbUri(), {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+    serverSelectionTimeoutMS: 5000
+  })
+  .then(() => {
+    console.log('Connected to MongoDB successfully');
+    // Test the connection by trying to find a user
+    return User.findOne({}).then(user => {
+      console.log('Database connection verified:', user ? 'Found test user' : 'No users yet');
+    });
+  })
   .catch(err => {
     console.error('MongoDB connection error:', err);
     process.exit(1); // Exit if we can't connect to database
@@ -140,9 +150,11 @@ app.get('/login', (req, res) => {
 
 
 app.post('/login', async (req, res) => {
+  console.log('Login attempt:', req.body);
   const { username, password } = req.body;
   const user = await User.findOne({ username });
   const ip = req.ip || (req.connection && req.connection.remoteAddress);
+  console.log('Found user:', user ? 'yes' : 'no');
   if (!user) {
     await logAudit(username, 'failed login', ip);
     return res.send('Invalid credentials. <a href="/login">Try again</a>');
@@ -168,8 +180,10 @@ app.post('/login', async (req, res) => {
   }
 
   if (passwordOk) {
+    console.log('Password verified, setting session');
     req.session.user = { username: user.username, role: user.role };
     await logAudit(user, 'login', ip);
+    console.log('Redirecting to /notes');
     return res.redirect('/notes');
   }
 
