@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Audit Log - Notes App</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <div class="container">
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.2em;">
+      <div style="background:linear-gradient(135deg,#6366f1 60%,#4338ca 100%);width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px #6366f133;margin-bottom:0.7em;">
+        <span style="font-size:2.2em;color:#fff;">📝</span>
+      </div>
+      <h2 style="margin:0;font-size:2em;font-weight:800;letter-spacing:0.5px;color:#22223b;">Audit Log</h2>
+    </div>
+    <div class="top-bar" style="margin-bottom:1.2em;">
+      <a href="/notes" style="font-weight:500;">← Back to Notes</a>
+      <a href="/logout" style="font-weight:500;color:#e11d48;">Logout</a>
+    </div>
+    <div class="audit-log-card" style="background:#f8f9fa;border-radius:12px;box-shadow:0 2px 12px #6366f122;padding:1.5em 1.2em;max-height:420px;overflow:auto;">
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#e0e7ff;">
+            <th style="text-align:left;padding:0.5em 0.7em;font-size:1em;color:#4338ca;font-weight:700;border-radius:6px 0 0 6px;">Timestamp</th>
+            <th style="text-align:left;padding:0.5em 0.7em;font-size:1em;color:#4338ca;font-weight:700;">User</th>
+            <th style="text-align:left;padding:0.5em 0.7em;font-size:1em;color:#4338ca;font-weight:700;border-radius:0 6px 6px 0;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% logText.split('\n').forEach(function(line) { 
+               // Example log line: 2025-10-10T09:53:38.448Z | umar@exam.com (user) | login
+               var match = line.match(/^(.*?) \| (.*?) \((.*?)\) \| (.*)$/);
+               if (match) { %>
+            <tr style="border-bottom:1px solid #e0e0e0;">
+              <td style="padding:0.5em 0.7em;font-size:0.98em;color:#22223b;white-space:nowrap;"><%= match[1] %></td>
+              <td style="padding:0.5em 0.7em;font-size:0.98em;color:#6366f1;font-weight:600;"><%= match[2] %> (<%= match[3] %>)</td>
+              <td style="padding:0.5em 0.7em;font-size:0.98em;">
+                <% if (/login|logout|signup/i.test(match[4])) { %>
+                  <span style="color:#6366f1;font-weight:600;">🔑 <%= match[4] %></span>
+                <% } else if (/delete|remove|fail|error/i.test(match[4])) { %>
+                  <span style="color:#e11d48;font-weight:600;">⚠️ <%= match[4] %></span>
+                <% } else if (/create|add|success|note/i.test(match[4])) { %>
+                  <span style="color:#16a34a;font-weight:600;">📝 <%= match[4] %></span>
+                <% } else { %>
+                  <span><%= match[4] %></span>
+                <% } %>
+              </td>
+            </tr>
+          <% } %>
+        <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

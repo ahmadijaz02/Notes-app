@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="/style.css">
+<body>
+  <div class="container">
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:1.2em;">
+      <div style="background:linear-gradient(135deg,#6366f1 60%,#4338ca 100%);width:60px;height:60px;border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px #6366f133;margin-bottom:0.7em;">
+        <span style="font-size:2.2em;color:#fff;">📝</span>
+      </div>
+      <h2 style="margin:0;font-size:2em;font-weight:800;letter-spacing:0.5px;color:#22223b;">My Notes</h2>
+      <div style="color:#6366f1;font-size:1.08em;margin-top:0.2em;font-weight:500;">All your notes in one place</div>
+    </div>
+    <div class="top-bar">
+      <div id="user-info">Logged in as <%= user.username %> (<%= user.role %>)</div>
+      <div>
+        <% if (user.role === 'admin') { %>
+          <a href="/audit" id="audit-link">Audit Log</a>
+        <% } %>
+        <a href="/logout">Logout</a>
+      </div>
+    </div>
+    <form id="note-form" method="POST" action="/api/notes" class="note-form">
+      <input name="content" placeholder="Write a note..." required class="note-input">
+      <button type="submit" class="note-add-btn">Add Note</button>
+    </form>
+    <div class="error" id="error-msg" style="display:none"></div>
+  <ul id="notes-list" class="notes-list"></ul>
+  </div>
+  <script>
+    function showError(msg) {
+      const err = document.getElementById('error-msg');
+      err.textContent = msg;
+      err.style.display = msg ? '' : 'none';
+    }
+    function loadNotes() {
+      fetch('/api/notes').then(r => r.json()).then(notes => {
+        const list = document.getElementById('notes-list');
+        list.innerHTML = '';
+        if (notes.length === 0) {
+          const empty = document.createElement('div');
+          empty.style.textAlign = 'center';
+          empty.style.color = '#888';
+          empty.style.margin = '2em 0 1em 0';
+          empty.innerHTML = "<span style='font-size:2em;'>📭</span><br>No notes yet. Add your first note!";
+          list.appendChild(empty);
+        } else {
+          notes.forEach(note => {
+            const li = document.createElement('li');
+            li.className = 'note-item note-animate';
+            li.innerHTML = `<span class='note-content'>${note.content}</span> <span class='note-meta'>(by ${note.owner})</span>`;
+            if ('<%= user.role %>' === 'admin' || note.owner === '<%= user.username %>') {
+              const form = document.createElement('form');
+              form.method = 'POST';
+              form.action = '/api/notes/delete';
+              form.style.display = 'inline';
+              form.innerHTML = `<input type='hidden' name='id' value='${note._id}'><button type='submit' class='note-delete-btn'>Delete</button>`;
+              li.appendChild(form);
+            }
+            list.appendChild(li);
+          });
+        }
+      });
+    }
+    loadNotes();
+    document.getElementById('note-form').addEventListener('submit', function(e) {
+      e.preventDefault();
+      const form = e.target;
+      fetch(form.action, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams(new FormData(form))
+      }).then(r => {
+        if (r.ok) {
+          form.reset();
+          loadNotes();
+          showError('');
+        } else {
+          showError('Failed to add note.');
+        }
+      });
+    });
+    document.getElementById('notes-list').addEventListener('submit', function(e) {
+      if (e.target.matches('form')) {
+        e.preventDefault();
+        const form = e.target;
+        fetch(form.action, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(new FormData(form))
+        }).then(r => {
+          if (r.ok) {
+            loadNotes();
+            showError('');
+          } else {
+            showError('Failed to delete note.');
+          }
+        });
+      }
+    });
+  </script>
+</body>
+</html>

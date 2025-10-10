@@ -1,10 +1,68 @@
-// This file is append-only. Each line: timestamp | user (role) | action
-2025-10-10T07:21:18.228Z | admin@exam.com (admin) | login | ::1
-2025-10-10T07:21:18.457Z | admin@exam.com (admin) | access notes | ::1
-2025-10-10T07:21:35.947Z | admin@exam.com (admin) | access notes | ::1
-2025-10-10T07:21:56.748Z | ali@exam.com (user) | signup | ::1
-2025-10-10T07:21:56.930Z | ali@exam.com (user) | access notes | ::1
-2025-10-10T07:24:39.655Z | ahmad@exam.com (user) | login | ::1
-2025-10-10T07:24:39.847Z | ahmad@exam.com (user) | access notes | ::1
-2025-10-10T07:24:49.667Z | umar@exam.com (user) | login | ::1
-2025-10-10T07:24:49.825Z | umar@exam.com (user) | access notes | ::1
+2025-10-10T09:53:38.448Z | umar@exam.com (user) | login | ::1
+2025-10-10T09:53:39.087Z | umar@exam.com (user) | access notes | ::1
+2025-10-10T09:54:58.280Z | umar@exam.com (user) | access notes | ::1
+2025-10-10T09:55:09.838Z | admin@exam.com (admin) | login | ::1
+2025-10-10T09:55:10.020Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T09:55:16.643Z | admin@exam.com (admin) | login | ::1
+2025-10-10T09:55:16.826Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T09:55:28.772Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T09:55:41.380Z | admin@exam.com (unknown) | failed login | ::1
+2025-10-10T09:57:09.969Z | admin@exam.com (admin) | login | ::1
+2025-10-10T09:57:10.544Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T09:57:26.044Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T09:59:44.457Z | admin@exam.com (admin) | login | ::1
+2025-10-10T09:59:45.123Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:02:59.689Z | admin@exam.com (unknown) | failed login | ::1
+2025-10-10T10:03:07.372Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:03:08.061Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:05:56.384Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:05:56.986Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:06:30.730Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:06:30.886Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:09:41.137Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:09:41.823Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:11:57.008Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:12:08.765Z | admin@exam.com (admin) | delete note | unknown
+2025-10-10T10:12:09.069Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:12:19.415Z | admin@exam.com (admin) | create note | unknown
+2025-10-10T10:12:20.028Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:13:05.073Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:13:05.280Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:23:44.589Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:23:46.431Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:46:29.172Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:46:30.861Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:48:02.168Z | admin@exam.com (admin) | login | ::1
+2025-10-10T10:48:02.569Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:50:19.271Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:51:12.027Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:54:58.639Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:57:40.423Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T10:59:19.710Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:00:52.007Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:03:36.417Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:03:58.182Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:04:01.718Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:04:21.008Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:04:39.441Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:04:52.493Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:05:59.793Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:06:09.142Z | admin@exam.com (admin) | login | ::1
+2025-10-10T11:06:09.934Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:06:52.879Z | admin@exam.com (admin) | login | ::1
+2025-10-10T11:06:53.549Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:10:18.265Z | admin@exam.com (admin) | login | ::1
+2025-10-10T11:10:18.419Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:10:34.368Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:10:53.305Z | admin@exam.com (admin) | create note | unknown
+2025-10-10T11:10:53.811Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:10:59.551Z | admin@exam.com (admin) | delete note | unknown
+2025-10-10T11:10:59.845Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:11:11.694Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:11:24.228Z | ahmad@exam.com (user) | login | ::1
+2025-10-10T11:11:24.658Z | ahmad@exam.com (user) | access notes | ::1
+2025-10-10T11:12:07.193Z | ahmad@exam.com (user) | login | ::1
+2025-10-10T11:12:07.456Z | ahmad@exam.com (user) | access notes | ::1
+2025-10-10T11:12:20.395Z | admin@exam.com (admin) | login | ::1
+2025-10-10T11:12:20.854Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T11:12:35.604Z | admin@exammonitoring.com (unknown) | failed login | ::1

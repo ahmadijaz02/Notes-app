@@ -1,0 +1,42 @@
+/* Login/Signup shared styles */
+.login-container, .signup-container {
+  max-width: 400px;
+  margin: 60px auto;
+  padding: 2em;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.login-container h2, .signup-container h2 {
+  text-align: center;
+  margin-bottom: 1em;
+}
+.login-container form, .signup-container form {
+  display: flex;
+  flex-direction: column;
+  gap: 1em;
+}
+input[type="text"], input[type="password"] {
+  padding: 0.7em;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1em;
+}
+button[type="submit"] {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 0.7em;
+  border-radius: 4px;
+  font-size: 1em;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+button[type="submit"]:hover {
+  background: #0056b3;
+}
+.error {
+  color: #c00;
+  text-align: center;
+  margin-bottom: 1em;
+}

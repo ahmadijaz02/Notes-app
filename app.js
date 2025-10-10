@@ -8,9 +8,15 @@ const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 const config = require('./config');
 
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Set EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+
+const ejs = require('ejs');
 // Production check
 const isProduction = process.env.NODE_ENV === 'production';
 
@@ -144,29 +150,28 @@ function requireAdmin(req, res, next) {
 }
 
 // Login page
+
+
+// Render login page with error message if present (EJS)
 app.get('/login', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+  res.render('login', { error: req.query.error || null });
 });
 
-
+// Handle login POST
 app.post('/login', async (req, res) => {
-  console.log('Login attempt:', req.body);
   const { username, password } = req.body;
+  const ip = req.ip;
   const user = await User.findOne({ username });
-  const ip = req.ip || (req.connection && req.connection.remoteAddress);
-  console.log('Found user:', user ? 'yes' : 'no');
   if (!user) {
     await logAudit(username, 'failed login', ip);
-    return res.send('Invalid credentials. <a href="/login">Try again</a>');
+    return res.redirect('/login?error=Invalid+credentials');
   }
-
   let passwordOk = false;
   try {
     passwordOk = await bcrypt.compare(password, user.password);
   } catch (e) {
     passwordOk = false;
   }
-
   // Migration fallback: if stored password was plaintext, re-hash it
   if (!passwordOk && user.password === password) {
     try {
@@ -178,44 +183,43 @@ app.post('/login', async (req, res) => {
       // ignore
     }
   }
-
   if (passwordOk) {
-    console.log('Password verified, setting session');
     req.session.user = { username: user.username, role: user.role };
     await logAudit(user, 'login', ip);
-    console.log('Redirecting to /notes');
     return res.redirect('/notes');
   }
-
   await logAudit(username, 'failed login', ip);
-  res.send('Invalid credentials. <a href="/login">Try again</a>');
+  return res.redirect('/login?error=Invalid+credentials');
 });
 
 // Signup page
+
+
+// Render signup page with error message if present (EJS)
 app.get('/signup', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+  res.render('signup', { error: req.query.error || null });
 });
 
-// Signup route
+// Handle signup POST
 app.post('/signup', async (req, res) => {
   const { username, password } = req.body;
   try {
     const exists = await User.findOne({ username });
-    if (exists) return res.send('Username already exists. <a href="/signup">Try again</a>');
+    if (exists) return res.redirect('/signup?error=Username+already+exists');
     const hash = await bcrypt.hash(password, 10);
     const user = await User.create({ username, password: hash, role: 'user' });
     await logAudit(user, 'signup', req.ip);
     req.session.user = { username: user.username, role: user.role };
     res.redirect('/notes');
   } catch (err) {
-    res.send('Error creating user. <a href="/signup">Try again</a>');
+    res.redirect('/signup?error=Error+creating+user');
   }
 });
 
-// Notes page
+// Notes page (EJS)
 app.get('/notes', requireLogin, async (req, res) => {
   await logAudit(req.session.user, 'access notes', req.ip);
-  res.sendFile(path.join(__dirname, 'public', 'notes.html'));
+  res.render('notes', { user: req.session.user });
 });
 
 // API: get notes
@@ -267,12 +271,12 @@ app.post('/api/notes/delete', requireLogin, async (req, res) => {
 });
 
 
-// Audit log page (admin only)
+// Audit log page (EJS, admin only)
 app.get('/audit', requireLogin, requireAdmin, async (req, res) => {
   try {
     const logs = await Audit.find().sort({ timestamp: -1 });
     let logText = logs.map(l => `${l.timestamp.toISOString()} | ${l.username} (${l.role}) | ${l.action}`).join('\n');
-    res.send(`<h2>Audit Log</h2><pre>${logText}</pre><a href='/notes'>Back</a>`);
+    res.render('audit', { logText });
   } catch (err) {
     res.status(500).send('Audit log error');
   }
