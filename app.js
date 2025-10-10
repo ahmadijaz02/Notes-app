@@ -1,0 +1,254 @@
+const express = require('express');
+const session = require('express-session');
+const path = require('path');
+const fs = require('fs');
+const bcrypt = require('bcryptjs');
+
+const mongoose = require('mongoose');
+const config = require('./config');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+
+// DB connection logic
+function getDbUri() {
+  return config.PRIMARY_DB_DOWN ? config.FALLBACK_DB_URI : config.PRIMARY_DB_URI;
+}
+
+mongoose.connect(getDbUri());
+
+// Mongoose models
+
+const userSchema = new mongoose.Schema({
+  username: { type: String, unique: true },
+  password: String,
+  role: { type: String, default: 'user' }
+});
+const User = mongoose.model('User', userSchema);
+
+const noteSchema = new mongoose.Schema({
+  content: String,
+  owner: String
+});
+const Note = mongoose.model('Note', noteSchema);
+
+const auditSchema = new mongoose.Schema({
+  timestamp: { type: Date, default: Date.now },
+  username: String,
+  role: String,
+  action: String
+});
+const Audit = mongoose.model('Audit', auditSchema);
+
+
+// Audit log function
+async function logAudit(user, action) {
+  await Audit.create({ username: user.username, role: user.role, action });
+}
+
+app.use(express.urlencoded({ extended: true }));
+// Slightly stronger session cookie defaults (keep simple for local dev)
+app.use(session({
+  secret: process.env.SESSION_SECRET || 'secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    httpOnly: true,
+    secure: false, // set to true if using HTTPS
+    sameSite: 'lax'
+  }
+}));
+
+// Prevent unauthenticated direct access to sensitive static files (notes page)
+app.use((req, res, next) => {
+  if (req.path === '/notes.html') {
+    if (!req.session.user) return res.redirect('/login');
+  }
+  next();
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
+
+app.get('/api/user', requireLogin, (req, res) => {
+  res.json({
+    username: req.session.user.username,
+    role: req.session.user.role
+  });
+});
+
+// Audit logging: write to DB and append to file
+async function writeAuditLog(username, role, action, ip) {
+  try {
+    await Audit.create({ username, role, action });
+  } catch (e) {
+    // DB write failed; still attempt to write to file
+  }
+  const line = `${new Date().toISOString()} | ${username} (${role}) | ${action} | ${ip || 'unknown'}\n`;
+  fs.appendFile(path.join(__dirname, 'audit.log'), line, (err) => {
+    if (err) console.error('Failed to write to audit.log', err);
+  });
+}
+
+// Helper that accepts a user object or a username string
+async function logAudit(userOrName, action, ip) {
+  if (!userOrName) return writeAuditLog('unknown', 'unknown', action, ip);
+  if (typeof userOrName === 'string') return writeAuditLog(userOrName, 'unknown', action, ip);
+  return writeAuditLog(userOrName.username || 'unknown', userOrName.role || 'unknown', action, ip);
+}
+
+// Middleware: require login
+function requireLogin(req, res, next) {
+  if (!req.session.user) return res.redirect('/login');
+  next();
+}
+
+// Middleware: require admin
+function requireAdmin(req, res, next) {
+  if (!req.session.user || req.session.user.role !== 'admin') return res.status(403).send('Forbidden');
+  next();
+}
+
+// Login page
+app.get('/login', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+  const user = await User.findOne({ username });
+  const ip = req.ip || (req.connection && req.connection.remoteAddress);
+  if (!user) {
+    await logAudit(username, 'failed login', ip);
+    return res.send('Invalid credentials. <a href="/login">Try again</a>');
+  }
+
+  let passwordOk = false;
+  try {
+    passwordOk = await bcrypt.compare(password, user.password);
+  } catch (e) {
+    passwordOk = false;
+  }
+
+  // Migration fallback: if stored password was plaintext, re-hash it
+  if (!passwordOk && user.password === password) {
+    try {
+      const hash = await bcrypt.hash(password, 10);
+      user.password = hash;
+      await user.save();
+      passwordOk = true;
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  if (passwordOk) {
+    req.session.user = { username: user.username, role: user.role };
+    await logAudit(user, 'login', ip);
+    return res.redirect('/notes');
+  }
+
+  await logAudit(username, 'failed login', ip);
+  res.send('Invalid credentials. <a href="/login">Try again</a>');
+});
+
+// Signup page
+app.get('/signup', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+// Signup route
+app.post('/signup', async (req, res) => {
+  const { username, password } = req.body;
+  try {
+    const exists = await User.findOne({ username });
+    if (exists) return res.send('Username already exists. <a href="/signup">Try again</a>');
+    const hash = await bcrypt.hash(password, 10);
+    const user = await User.create({ username, password: hash, role: 'user' });
+    await logAudit(user, 'signup', req.ip);
+    req.session.user = { username: user.username, role: user.role };
+    res.redirect('/notes');
+  } catch (err) {
+    res.send('Error creating user. <a href="/signup">Try again</a>');
+  }
+});
+
+// Notes page
+app.get('/notes', requireLogin, async (req, res) => {
+  await logAudit(req.session.user, 'access notes', req.ip);
+  res.sendFile(path.join(__dirname, 'public', 'notes.html'));
+});
+
+// API: get notes
+
+app.get('/api/notes', requireLogin, async (req, res) => {
+  try {
+    let notes;
+    if (req.session.user.role === 'admin') {
+      notes = await Note.find();
+    } else {
+      notes = await Note.find({ owner: req.session.user.username });
+    }
+    res.json(notes);
+  } catch (err) {
+    res.status(500).send('DB error');
+  }
+});
+
+// API: create note
+
+app.post('/api/notes', requireLogin, async (req, res) => {
+  try {
+    const { content } = req.body;
+    const owner = req.session.user.username;
+    await Note.create({ content, owner });
+    await logAudit(req.session.user, 'create note');
+    res.redirect('/notes');
+  } catch (err) {
+    res.status(500).send('DB error');
+  }
+});
+
+// API: delete note
+
+app.post('/api/notes/delete', requireLogin, async (req, res) => {
+  try {
+    const { id } = req.body;
+    const note = await Note.findById(id);
+    if (!note) return res.status(404).send('Note not found');
+    if (req.session.user.role !== 'admin' && note.owner !== req.session.user.username) {
+      return res.status(403).send('Forbidden');
+    }
+    await Note.deleteOne({ _id: id });
+    await logAudit(req.session.user, 'delete note');
+    res.redirect('/notes');
+  } catch (err) {
+    res.status(500).send('DB error');
+  }
+});
+
+
+// Audit log page (admin only)
+app.get('/audit', requireLogin, requireAdmin, async (req, res) => {
+  try {
+    const logs = await Audit.find().sort({ timestamp: -1 });
+    let logText = logs.map(l => `${l.timestamp.toISOString()} | ${l.username} (${l.role}) | ${l.action}`).join('\n');
+    res.send(`<h2>Audit Log</h2><pre>${logText}</pre><a href='/notes'>Back</a>`);
+  } catch (err) {
+    res.status(500).send('Audit log error');
+  }
+});
+
+// Logout
+app.get('/logout', (req, res) => {
+  req.session.destroy(() => {
+    res.redirect('/login');
+  });
+});
+
+
+console.log('Connecting to MongoDB URI:', getDbUri());
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
