@@ -1,0 +1,10 @@
+// This file is append-only. Each line: timestamp | user (role) | action
+2025-10-10T07:21:18.228Z | admin@exam.com (admin) | login | ::1
+2025-10-10T07:21:18.457Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T07:21:35.947Z | admin@exam.com (admin) | access notes | ::1
+2025-10-10T07:21:56.748Z | ali@exam.com (user) | signup | ::1
+2025-10-10T07:21:56.930Z | ali@exam.com (user) | access notes | ::1
+2025-10-10T07:24:39.655Z | ahmad@exam.com (user) | login | ::1
+2025-10-10T07:24:39.847Z | ahmad@exam.com (user) | access notes | ::1
+2025-10-10T07:24:49.667Z | umar@exam.com (user) | login | ::1
+2025-10-10T07:24:49.825Z | umar@exam.com (user) | access notes | ::1
