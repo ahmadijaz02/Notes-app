@@ -1,5 +1,6 @@
 const express = require('express');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
@@ -10,13 +11,22 @@ const config = require('./config');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Production check
+const isProduction = process.env.NODE_ENV === 'production';
+
 
 // DB connection logic
 function getDbUri() {
   return config.PRIMARY_DB_DOWN ? config.FALLBACK_DB_URI : config.PRIMARY_DB_URI;
 }
 
-mongoose.connect(getDbUri());
+// Connect to MongoDB with proper error handling
+mongoose.connect(getDbUri())
+  .then(() => console.log('Connected to MongoDB successfully'))
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+    process.exit(1); // Exit if we can't connect to database
+  });
 
 // Mongoose models
 
@@ -48,15 +58,29 @@ async function logAudit(user, action) {
 }
 
 app.use(express.urlencoded({ extended: true }));
-// Slightly stronger session cookie defaults (keep simple for local dev)
+
+// Root route - redirect to login
+app.get('/', (req, res) => {
+  res.redirect('/login');
+});
+
+// Session configuration with MongoDB store
 app.use(session({
   secret: process.env.SESSION_SECRET || 'secret',
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: getDbUri(),
+    ttl: 24 * 60 * 60, // 1 day
+    crypto: {
+      secret: process.env.SESSION_SECRET || 'secret'
+    }
+  }),
   cookie: {
     httpOnly: true,
-    secure: false, // set to true if using HTTPS
-    sameSite: 'lax'
+    secure: isProduction, // true in production (HTTPS)
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 1 day
   }
 }));
 
