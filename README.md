@@ -1,4 +1,4 @@
-# Notes App - Security Properties 
+# Notes App - Security Properties
 
 This project demonstrates:
 - **Confidentiality**: Access control (users see/manage only their own notes, admin sees all)
